@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from firebase_admin import firestore
 from datetime import datetime
+import json
 
 db = firestore.client()
 
@@ -60,9 +61,9 @@ def banners(request):
         category_id = banner_data.get('category')
         category_name = "Unknown"  # Default value
         if category_id:
-            category_ref = db.collection('Types').document(str(category_id)).get()
+            category_ref = db.collection('Places_type').document(str(category_id)).get()
             if category_ref.exists:
-                category_name = category_ref.to_dict().get('name', "Unknown")
+                category_name = category_ref.to_dict().get('type_name', "Unknown")
 
 
         banners_data.append({
@@ -236,9 +237,9 @@ def places(request):
          type_id = place_data.get('type_id')
          type_name = "Unknown"  # Default value
          if type_id:
-              type_ref = db.collection('Types').document(str(type_id)).get()
+              type_ref = db.collection('Places_type').document(str(type_id)).get()
               if type_ref.exists:
-                  type_name = type_ref.to_dict().get('name', "Unknown")
+                  type_name = type_ref.to_dict().get('type_name', "Unknown")
 
 
          places_data.append({
@@ -257,8 +258,8 @@ def create_place(request):
           place_latitude = request.POST.get('place_latitude')
           place_longitude = request.POST.get('place_longitude')
           place_image = request.POST.get('place_image')
-          city_id = int(request.POST.get('city_id'))
-          type_id = int(request.POST.get('type_id'))
+          city_id = request.POST.get('city_id')
+          type_id = request.POST.get('type_id')
           rate_avg = request.POST.get('rate_avg')
           review_num = int(request.POST.get('review_num'))
          # Create the new document and the corresponding data for that document
@@ -286,11 +287,11 @@ def create_place(request):
         citys.append({'id': doc.id, 'name': doc.to_dict().get('city_name')})
 
     # Fetch types options for dropdown
-     types_ref = db.collection('Types')
+     types_ref = db.collection('Places_type')
      types_docs = types_ref.get()
      types = []
      for doc in types_docs:
-        types.append({'id': doc.id, 'name': doc.to_dict().get('name')})
+        types.append({'id': doc.id, 'name': doc.to_dict().get('type_name')})
 
 
      return render(request, 'create_place.html',{'citys': citys, 'types': types})
@@ -308,8 +309,8 @@ def update_place(request, place_id):
          place_latitude = request.POST.get('place_latitude')
          place_longitude = request.POST.get('place_longitude')
          place_image = request.POST.get('place_image')
-         city_id = int(request.POST.get('city_id'))
-         type_id = int(request.POST.get('type_id'))
+         city_id = request.POST.get('city_id')
+         type_id = request.POST.get('type_id')
          rate_avg = request.POST.get('rate_avg')
          review_num = int(request.POST.get('review_num'))
 
@@ -336,18 +337,136 @@ def update_place(request, place_id):
     for doc in citys_docs:
        citys.append({'id': doc.id, 'name': doc.to_dict().get('city_name')})
    # Fetch types options for dropdown
-    types_ref = db.collection('Types')
+    types_ref = db.collection('Places_type')
     types_docs = types_ref.get()
     types = []
     for doc in types_docs:
-       types.append({'id': doc.id, 'name': doc.to_dict().get('name')})
+       types.append({'id': doc.id, 'name': doc.to_dict().get('type_name')})
 
     return render(request, 'update_place.html', {'place': place_ref.to_dict(), 'place_id':place_id,  'citys': citys, 'types': types})
 
+
 def types(request):
-    return render(request, 'types.html')
+    # Fetch places type data from firebase
+    types_ref = db.collection('Places_type')
+    docs = types_ref.get()
+    types_data = []
+    for doc in docs:
+         types_data.append({ 'id': doc.id, 'data': doc.to_dict() })
+    return render(request, 'types.html', {'types_data': types_data})
+
+def create_type(request):
+    if request.method == 'POST':
+         type_name = request.POST.get('type_name')
+         type_icon = request.POST.get('type_icon')
+
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Places_type').document()
+         doc_ref.set({
+            'type_name': type_name,
+            'type_icon': type_icon,
+            'type_id':  doc_ref.id
+         })
+         return redirect('types')
+    return render(request, 'create_type.html')
 
 
+def update_type(request, type_id):
+    type_ref = db.collection('Places_type').document(type_id).get()
+    if not type_ref.exists:
+       return render(request, 'not_found.html')
+
+
+    if request.method == 'POST':
+         type_name = request.POST.get('type_name')
+         type_icon = request.POST.get('type_icon')
+
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Places_type').document(type_id)
+         doc_ref.update({
+             'type_name': type_name,
+             'type_icon': type_icon
+         })
+         return redirect('types')
+    return render(request, 'update_type.html', {'type': type_ref.to_dict(), 'type_id':type_id })
+
+
+
+def upload(request):
+     if request.method == 'POST' and request.FILES.get('places_file'):
+        places_file = request.FILES['places_file']
+        try:
+              # Decode the bytes to string and then convert the json string to a dict
+            file_content = places_file.read().decode('utf-8')
+            data = json.loads(file_content)
+             # Use the list of dictionary to save data on firestore
+            for place in data:
+                doc_ref = db.collection('Places').document()
+                place['place_id'] = doc_ref.id
+                doc_ref.set(place)
+        except Exception as e:
+           # you may add logging system here
+           print(f"Error processing file: {e}")
+           return render(request, 'upload.html', {'error': f"Error processing file: {e}"})
+
+        return render(request, 'upload.html', {'message': 'Places file uploaded successfully'})
+     return render(request, 'upload.html')
+
+
+
+def places_images(request):
+     # Fetch places images data from firebase
+    images_ref = db.collection('Places_images')
+    docs = images_ref.get()
+    images_data = []
+    for doc in docs:
+         images_data.append({ 'id': doc.id, 'data': doc.to_dict() })
+    return render(request, 'places_images.html', {'images_data': images_data})
+
+
+def create_place_image(request):
+    if request.method == 'POST':
+         image = request.POST.get('image')
+         place_id = request.POST.get('place_id')
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Places_images').document()
+         doc_ref.set({
+            'image': image,
+             'place_id': place_id,
+            'image_id': doc_ref.id
+         })
+         return redirect('places_images')
+    # Fetch all of the places to select from in the form
+    places_ref = db.collection('Places')
+    places_docs = places_ref.get()
+    places = []
+    for doc in places_docs:
+       places.append({'id': doc.id, 'name': doc.to_dict().get('place_name')})
+    return render(request, 'create_place_image.html', {'places': places})
+
+
+def update_place_image(request, image_id):
+    image_ref = db.collection('Places_images').document(image_id).get()
+    if not image_ref.exists:
+       return render(request, 'not_found.html')
+    if request.method == 'POST':
+         image = request.POST.get('image')
+         place_id = request.POST.get('place_id')
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Places_images').document(image_id)
+         doc_ref.update({
+            'image': image,
+              'place_id': place_id
+         })
+         return redirect('places_images')
+       # Fetch all of the places to select from in the form
+    places_ref = db.collection('Places')
+    places_docs = places_ref.get()
+    places = []
+    for doc in places_docs:
+       places.append({'id': doc.id, 'name': doc.to_dict().get('place_name')})
+
+    return render(request, 'update_place_image.html', {'image': image_ref.to_dict(), 'image_id': image_id, 'places': places })
 
 
 def favorites(request):
@@ -360,8 +479,6 @@ def services(request):
 def cities(request):
     return render(request, 'cities.html')
 
-def upload(request):
-    return render(request, 'upload.html')
 
 def settings(request):
     return render(request, 'settings.html')
