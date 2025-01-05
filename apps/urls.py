@@ -12,7 +12,12 @@ urlpatterns = [
     path('banners/', views.banners, name='banners'),
     path('cities/', views.cities, name='cities'),
     path('upload/', views.upload, name='upload'),
-     path('settings/', views.settings, name='settings'),
+    path('settings/', views.settings, name='settings'),
+    path('banners/create/', views.create_banner, name='create_banner'), # Add create banner urls
+    path('users/create/', views.create_user, name='create_user'), # Add create user urls
+    path('reviews/create/', views.create_review, name='create_review'), # Add create review urls
+    path('places/create/', views.create_place, name='create_place'), # Add create place urls
+    path('places/update/<str:place_id>/', views.update_place, name='update_place'), # Add update place urls
 
 
     path('pages-calendar/', views.pages_calendar, name='pages-calendar'),

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Place | Your App Name{% endblock %}
+
+{% block content %}
+<!-- ========== Page Title Start ========== -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <h4 class="mb-0 fw-semibold">Create Place</h4>
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="javascript: void(0);">Places</a></li>
+                 <li class="breadcrumb-item active">Create</li>
+            </ol>
+        </div>
+    </div>
+</div>
+<!-- ========== Page Title End ========== -->
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                         <label for="place_name" class="form-label">Place Name</label>
+                        <input type="text" class="form-control" id="place_name" name="place_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="place_description" class="form-label">Place Description</label>
+                        <textarea class="form-control" id="place_description" name="place_description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="place_location" class="form-label">Place Location</label>
+                         <input type="text" class="form-control" id="place_location" name="place_location" required>
+                    </div>
+                     <div class="mb-3">
+                        <label for="place_latitude" class="form-label">Place Latitude</label>
+                        <input type="text" class="form-control" id="place_latitude" name="place_latitude" required>
+                     </div>
+                      <div class="mb-3">
+                           <label for="place_longitude" class="form-label">Place Longitude</label>
+                          <input type="text" class="form-control" id="place_longitude" name="place_longitude" required>
+                     </div>
+                       <div class="mb-3">
+                         <label for="place_image" class="form-label">Place Image URL</label>
+                         <input type="url" class="form-control" id="place_image" name="place_image" required>
+                       </div>
+                       <div class="mb-3">
+                            <label for="city_id" class="form-label">City</label>
+                            <select class="form-control" id="city_id" name="city_id" required>
+                                {% for city in citys %}
+                                  <option value="{{ city.id }}">{{ city.name }}</option>
+                                {% endfor %}
+                             </select>
+                       </div>
+                       <div class="mb-3">
+                            <label for="type_id" class="form-label">Type</label>
+                             <select class="form-control" id="type_id" name="type_id" required>
+                                  {% for type in types %}
+                                       <option value="{{ type.id }}">{{ type.name }}</option>
+                                  {% endfor %}
+                           </select>
+                     </div>
+                     <div class="mb-3">
+                           <label for="rate_avg" class="form-label">Rate Avg</label>
+                           <input type="text" class="form-control" id="rate_avg" name="rate_avg" required>
+                     </div>
+                    <div class="mb-3">
+                        <label for="review_num" class="form-label">Review Num</label>
+                        <input type="number" class="form-control" id="review_num" name="review_num" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
