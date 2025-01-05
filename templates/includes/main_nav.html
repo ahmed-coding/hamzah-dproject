@@ -6,13 +6,13 @@
               <img src="{% static 'assets/images/logo.png' %}" width="70" height="70" alt="logo sm">
               <!-- <img src="assets/images/logo.png" class="logo-sm" alt="logo sm">
               <img src="assets/images/logo.png" class="logo-lg" alt="logo dark"> -->
-              <h3 >Yemen Tourist Guide</h3> 
+              <h3 >Yemen Tourist Guide</h3>
          </a>
 
          <a href="{% url 'index' %}" class="logo-light">
               <img src="{% static 'assets/images/logo.png' %}" width="70" height="70" alt="logo sm">
               <!-- <img src="assets/images/logo.png" width="80" height="80" alt="logo light"> -->
-              <h3>Yemen Tourist Guide</h3> 
+              <h3>Yemen Tourist Guide</h3>
          </a>
     </div>
 
@@ -27,8 +27,7 @@
 
               <li class="menu-title">Menu</li>
 
-              
-    
+
               <li class="nav-item">
                    <a class="nav-link" href="{% url 'index' %}">
                         <img src="{% static 'assets/icons/dashboardIcon.svg' %}" width="15" height="15">
@@ -57,13 +56,6 @@
                    </a>
               </li>
 
-              <li class="nav-item">
-                   <a class="nav-link" href="{% url 'places_images' %}">
-                        <img src="{% static 'assets/icons/locationIcon.svg' %}" width="15" height="15">
-                        <span class="nav-text">Places Image</span>
-                   </a>
-              </li>
-         
 
               <li class="nav-item">
                    <a class="nav-link" href="{% url 'reviews' %}">
@@ -78,24 +70,41 @@
                         <span class="nav-text">Favorites</span>
                    </a>
               </li>
-              <li class="nav-item">
-                    <a class="nav-link" href="{% url 'services' %}">
+               <li class="nav-item">
+                   <a class="nav-link" href="{% url 'places_services' %}">
                          <img src="{% static 'assets/icons/locationIcon.svg' %}" width="15" height="15">
                          <span class="nav-text">Place Services</span>
-                    </a>
+                   </a>
               </li>
-    
-              <li class="nav-item">
-                    <a class="nav-link" href="{% url 'banners' %}">
-                         <img src="{% static 'assets/icons/bannerIcon.svg' %}" width="15" height="15">
-                         <span class="nav-text">Banners</span>
+             <li class="nav-item">
+                    <a class="nav-link" href="{% url 'services' %}">
+                         <img src="{% static 'assets/icons/locationIcon.svg' %}" width="15" height="15">
+                         <span class="nav-text">Services</span>
                     </a>
+               </li>
+              <li class="nav-item">
+                   <a class="nav-link" href="{% url 'banners' %}">
+                        <img src="{% static 'assets/icons/bannerIcon.svg' %}" width="15" height="15">
+                        <span class="nav-text">Banners</span>
+                   </a>
               </li>
 
               <li class="nav-item">
                    <a class="nav-link" href="{% url 'cities' %}">
                         <img src="{% static 'assets/icons/cityIcon.svg' %}" width="15" height="15">
-                        <span class="nav-text">Cities</span>
+                        <span class="nav-text">Cities </span>
+                   </a>
+              </li>
+               <li class="nav-item">
+                   <a class="nav-link" href="{% url 'countries' %}">
+                        <img src="{% static 'assets/icons/cityIcon.svg' %}" width="15" height="15">
+                        <span class="nav-text">Countries</span>
+                   </a>
+              </li>
+             <li class="nav-item">
+                   <a class="nav-link" href="{% url 'places_images' %}">
+                         <img src="{% static 'assets/icons/uploadIcon.svg' %}" width="15" height="15">
+                         <span class="nav-text">Place Images</span>
                    </a>
               </li>
               <li class="nav-item">
@@ -105,14 +114,14 @@
                    </a>
               </li>
 
-              <li class="nav-item">
+              {% comment %} <li class="nav-item">
                    <a class="nav-link" href="{% url 'settings' %}">
                         <img src="{% static 'assets/icons/settingIcon.svg' %}" width="15" height="15">
                         <span class="nav-text">Settings</span>
                    </a>
-              </li> <!-- end Pages Menu -->
+              </li> <!-- end Pages Menu --> {% endcomment %}
 
-              
+
          </ul>
     </div>
 </div>

@@ -469,16 +469,323 @@ def update_place_image(request, image_id):
     return render(request, 'update_place_image.html', {'image': image_ref.to_dict(), 'image_id': image_id, 'places': places })
 
 
-def favorites(request):
-    return render(request, 'favorites.html')
+
 
 def services(request):
-    return render(request, 'services.html')
+    # Fetch services data from firebase
+    services_ref = db.collection('Services')
+    docs = services_ref.get()
+    services_data = []
+    for doc in docs:
+         service_data = doc.to_dict()
+          # Fetch Place Type Name
+         type_id = service_data.get('service_type')
+         type_name = "Unknown"  # Default value
+         if type_id:
+              type_ref = db.collection('Types').document(str(type_id)).get()
+              if type_ref.exists:
+                  type_name = type_ref.to_dict().get('name', "Unknown")
+
+         services_data.append({
+            'id': doc.id,
+            'data': service_data,
+             'type_name': type_name,
+        })
+    return render(request, 'services.html', {'services_data': services_data})
+
+def create_service(request):
+    if request.method == 'POST':
+         service_name = request.POST.get('service_name')
+         service_images = request.POST.get('service_images')
+         service_location = request.POST.get('service_location')
+         service_latitude = request.POST.get('service_latitude')
+         service_longitude = request.POST.get('service_longitude')
+         service_type = int(request.POST.get('service_type'))
+
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Services').document()
+         doc_ref.set({
+            'service_name': service_name,
+            'service_images': service_images,
+            'service_location': service_location,
+             'service_latitude': service_latitude,
+             'service_longitude': service_longitude,
+             'service_type': service_type,
+            'service_id': doc_ref.id
+         })
+         return redirect('services')
+        # Fetch types options for dropdown
+    types_ref = db.collection('Types')
+    types_docs = types_ref.get()
+    types = []
+    for doc in types_docs:
+        types.append({'id': doc.id, 'name': doc.to_dict().get('name')})
+    return render(request, 'create_service.html', {'types':types})
+
+def update_service(request, service_id):
+    service_ref = db.collection('Services').document(service_id).get()
+    if not service_ref.exists:
+       return render(request, 'not_found.html')
+    if request.method == 'POST':
+         service_name = request.POST.get('service_name')
+         service_images = request.POST.get('service_images')
+         service_location = request.POST.get('service_location')
+         service_latitude = request.POST.get('service_latitude')
+         service_longitude = request.POST.get('service_longitude')
+         service_type = int(request.POST.get('service_type'))
+
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Services').document(service_id)
+         doc_ref.update({
+            'service_name': service_name,
+            'service_images': service_images,
+             'service_location': service_location,
+            'service_latitude': service_latitude,
+            'service_longitude': service_longitude,
+            'service_type': service_type
+         })
+         return redirect('services')
+     # Fetch types options for dropdown
+    types_ref = db.collection('Types')
+    types_docs = types_ref.get()
+    types = []
+    for doc in types_docs:
+       types.append({'id': doc.id, 'name': doc.to_dict().get('name')})
+    return render(request, 'update_service.html', {'service': service_ref.to_dict(), 'service_id':service_id, 'types': types})
+
+
+def places_services(request):
+    # Fetch places services data from firebase
+    places_services_ref = db.collection('Places_services')
+    docs = places_services_ref.get()
+    places_services_data = []
+    for doc in docs:
+         place_service_data = doc.to_dict()
+
+          # Fetch Place Name
+         place_id = place_service_data.get('place_id')
+         place_name = "Unknown"  # Default value
+         if place_id:
+             place_ref = db.collection('Places').document(str(place_id)).get()
+             if place_ref.exists:
+                 place_name = place_ref.to_dict().get('place_name', "Unknown")
+
+        # Fetch Service name
+         service_id = place_service_data.get('service_id')
+         service_name = "Unknown"  # Default value
+         if service_id:
+             service_ref = db.collection('Services').document(str(service_id)).get()
+             if service_ref.exists:
+                 service_name = service_ref.to_dict().get('service_name', "Unknown")
+
+         places_services_data.append({
+            'id': doc.id,
+            'data': place_service_data,
+             'place_name': place_name,
+              'service_name': service_name,
+        })
+
+    return render(request, 'places_services.html', {'places_services_data': places_services_data})
+
+
+def create_place_service(request):
+    if request.method == 'POST':
+         place_id = int(request.POST.get('place_id'))
+         service_id = int(request.POST.get('service_id'))
+
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Places_services').document()
+         doc_ref.set({
+            'place_id': place_id,
+             'service_id': service_id
+         })
+         return redirect('places_services')
+   # Fetch all of the places to select from in the form
+    places_ref = db.collection('Places')
+    places_docs = places_ref.get()
+    places = []
+    for doc in places_docs:
+        places.append({'id': doc.id, 'name': doc.to_dict().get('place_name')})
+
+    # Fetch all of the services to select from in the form
+    services_ref = db.collection('Services')
+    services_docs = services_ref.get()
+    services = []
+    for doc in services_docs:
+        services.append({'id': doc.id, 'name': doc.to_dict().get('service_name')})
+    return render(request, 'create_place_service.html', {'places': places, 'services': services })
+
+def update_place_service(request, place_service_id):
+    place_service_ref = db.collection('Places_services').document(place_service_id).get()
+    if not place_service_ref.exists:
+       return render(request, 'not_found.html')
+
+    if request.method == 'POST':
+         place_id = int(request.POST.get('place_id'))
+         service_id = int(request.POST.get('service_id'))
+
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Places_services').document(place_service_id)
+         doc_ref.update({
+            'place_id': place_id,
+             'service_id': service_id
+         })
+         return redirect('places_services')
+ # Fetch all of the places to select from in the form
+    places_ref = db.collection('Places')
+    places_docs = places_ref.get()
+    places = []
+    for doc in places_docs:
+        places.append({'id': doc.id, 'name': doc.to_dict().get('place_name')})
+  # Fetch all of the services to select from in the form
+    services_ref = db.collection('Services')
+    services_docs = services_ref.get()
+    services = []
+    for doc in services_docs:
+       services.append({'id': doc.id, 'name': doc.to_dict().get('service_name')})
+    return render(request, 'update_place_service.html', {'place_service': place_service_ref.to_dict(), 'place_service_id': place_service_id, 'places': places, 'services': services })
+
+
+
+def favorites(request):
+    # Fetch user favorites data from firebase
+    favorites_ref = db.collection('User_favorites')
+    docs = favorites_ref.get()
+    favorites_data = []
+    for doc in docs:
+         favorite_data = doc.to_dict()
+         # Fetch Place Name
+         place_id = favorite_data.get('place_id')
+         place_name = "Unknown"  # Default value
+         if place_id:
+             place_ref = db.collection('Places').document(str(place_id)).get()
+             if place_ref.exists:
+                 place_name = place_ref.to_dict().get('place_name', "Unknown")
+        # Fetch User name
+         user_id = favorite_data.get('user_id')
+         user_name = "Unknown"  # Default value
+         if user_id:
+             user_ref = db.collection('Users').document(str(user_id)).get()
+             if user_ref.exists:
+                 user_name = user_ref.to_dict().get('user_name', "Unknown")
+
+
+         favorites_data.append({
+            'id': doc.id,
+            'data': favorite_data,
+             'place_name': place_name,
+            'user_name': user_name,
+        })
+         
+    return render(request, 'favorite.html', {'favorites_data': favorites_data})
+
+
 
 
 def cities(request):
-    return render(request, 'cities.html')
+    # Fetch cities data from firebase
+    cities_ref = db.collection('Citys')
+    docs = cities_ref.get()
+    cities_data = []
+    for doc in docs:
+         city_data = doc.to_dict()
+         country_id = city_data.get('country_id')
+         country_name = 'Unkown'
+         if country_id:
+           country_ref = db.collection('Countries').document(str(country_id)).get()
+           if country_ref.exists:
+                country_name = country_ref.to_dict().get('country_name', "Unknown")
+         cities_data.append({'id': doc.id, 'data': city_data, 'country_name': country_name})
+    return render(request, 'cities.html', {'cities_data': cities_data})
 
+def create_city(request):
+    if request.method == 'POST':
+          city_name = request.POST.get('city_name')
+          country_id = request.POST.get('country_id')
+
+        # Create the new document and the corresponding data for that document
+          doc_ref = db.collection('Citys').document()
+          doc_ref.set({
+             'city_name': city_name,
+            'country_id': country_id,
+             'city_id': doc_ref.id
+         })
+          return redirect('cities')
+
+    countries_ref = db.collection('Countries')
+    countries_docs = countries_ref.get()
+    countries = []
+    for doc in countries_docs:
+        countries.append({'id': doc.id, 'name': doc.to_dict().get('country_name')})
+    return render(request, 'create_city.html', {'countries': countries})
+
+
+def update_city(request, city_id):
+    city_ref = db.collection('Citys').document(city_id).get()
+    if not city_ref.exists:
+        return render(request, 'not_found.html')
+
+    if request.method == 'POST':
+          city_name = request.POST.get('city_name')
+          country_id = request.POST.get('country_id')
+
+        # Create the new document and the corresponding data for that document
+          doc_ref = db.collection('Citys').document(city_id)
+          doc_ref.update({
+              'city_name': city_name,
+            'country_id': country_id,
+         })
+          return redirect('cities')
+     # Fetch types options for dropdown
+    countries_ref = db.collection('Countries')
+    countries_docs = countries_ref.get()
+    countries = []
+    for doc in countries_docs:
+       countries.append({'id': doc.id, 'name': doc.to_dict().get('country_name')})
+    return render(request, 'update_city.html', {'city': city_ref.to_dict(),'city_id': city_id, 'countries': countries})
+
+
+
+
+def countries(request):
+    # Fetch countries data from firebase
+    countries_ref = db.collection('Countries')
+    docs = countries_ref.get()
+    countries_data = []
+    for doc in docs:
+         countries_data.append({ 'id': doc.id, 'data': doc.to_dict() })
+    return render(request, 'countries.html', {'countries_data': countries_data})
+
+
+def create_country(request):
+    if request.method == 'POST':
+         country_name = request.POST.get('country_name')
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Countries').document()
+         doc_ref.set({
+            'country_name': country_name,
+             'country_id': doc_ref.id
+         })
+         return redirect('countries')
+    return render(request, 'create_country.html')
+
+
+
+def update_country(request, country_id):
+    country_ref = db.collection('Countries').document(country_id).get()
+    if not country_ref.exists:
+        return render(request, 'not_found.html')
+
+    if request.method == 'POST':
+         country_name = request.POST.get('country_name')
+        # Create the new document and the corresponding data for that document
+         doc_ref = db.collection('Countries').document(country_id)
+         doc_ref.update({
+            'country_name': country_name
+         })
+         return redirect('countries')
+
+    return render(request, 'update_country.html', {'country': country_ref.to_dict(),'country_id': country_id })
 
 def settings(request):
     return render(request, 'settings.html')
