@@ -22,7 +22,7 @@
 #### **Create venv for first time**
 - `python -m venv venv`
 #### **active venv**
-- `venv/bin/activate`
+- `venv\Scripts\activate`
 #### **install requierments**
  - `pip install -r requirements.txt`
 #### **run project**
